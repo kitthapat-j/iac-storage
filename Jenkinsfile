@@ -30,7 +30,7 @@ pipeline {
         stage('Checkout Code') {
             steps {
                 // โค้ดจะถูก Checkout มายัง Workspace
-                git branch: 'main', url: 'YOUR_NEW_GITHUB_REPO_URL'
+                git branch: 'master', url: 'https://github.com/kitthapat-j/iac-storage.git'
                 echo "Code checked out."
             }
         }
