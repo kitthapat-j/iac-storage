@@ -47,7 +47,7 @@ pipeline {
                 echo "Starting IaC Security Scan with Terrascan..."
                 // รัน Terrascan: ใช้ตัวแปร PATH ที่กำหนดไว้แล้ว
                 // ใช้ --output cli เพื่อแสดง Policy Violation ใน Console Output
-                bat "${TERRASCAN_PATH} scan -i terraform -p . --output cli"
+                bat "${TERRASCAN_PATH} scan -i terraform -p . "
             }
         }
         
