@@ -1,5 +1,8 @@
 # main.tf
 
+provider "azurerm" {
+  features {} // นี่คือ Block "features" ที่ถูกบังคับใน v3.x
+}
 # 1. Resource Group
 resource "azurerm_resource_group" "rg" {
   name     = "storage-secops-rg"
