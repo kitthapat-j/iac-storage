@@ -8,7 +8,7 @@ resource "azurerm_resource_group" "rg" {
 
 # 2. Azure Storage Account (Vulnerable by Design: Public Access is ON)
 resource "azurerm_storage_account" "storage" {
-  name                     = "secopslabstorage0324341102" # ต้องไม่ซ้ำใครทั่วโลก!
+  name                     = "secopslabstage03102" # ต้องไม่ซ้ำใครทั่วโลก!
   resource_group_name      = azurerm_resource_group.rg.name
   location                 = azurerm_resource_group.rg.location
   account_tier             = "Standard"
