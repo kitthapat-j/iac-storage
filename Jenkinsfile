@@ -48,7 +48,22 @@ pipeline {
                 // รัน Terrascan: ใช้ตัวแปร PATH ที่กำหนดไว้แล้ว
                 // ใช้ --output cli เพื่อแสดง Policy Violation ใน Console Output
                 //bat "${TERRASCAN_PATH} scan -i terraform -p . "
-                bat "${TRIVY_PATH} config main.tf --exit-code 1"
+                bat "${TRIVY_PATH} config main.tf -f json -o trivy-results.json"
+
+                echo "Checking JSON output for Azure Public Access Violation..."
+                
+                // ใช้ PowerShell เพื่อค้นหาคำที่เกี่ยวข้องกับช่องโหว่
+                // (Policy ID สำหรับ Azure Storage Public Access ใน Trivy มักมีคำว่า 'public')
+                powershell """
+                    $content = Get-Content -Path 'trivy-results.json' -Raw
+                    
+                    if ($content -match 'Azure Storage account allows public access') {
+                        echo "--- VULNERABILITY FOUND: Public access is enabled! BLOCKING DEPLOYMENT ---"
+                        exit 1 // บังคับให้ Jenkins Stage Fail
+                    } else {
+                        echo "Security scan clean. Proceeding to deployment."
+                    }
+                """
             }
         }
         
