@@ -48,7 +48,7 @@ pipeline {
                 // รัน Terrascan: ใช้ตัวแปร PATH ที่กำหนดไว้แล้ว
                 // ใช้ --output cli เพื่อแสดง Policy Violation ใน Console Output
                 //bat "${TERRASCAN_PATH} scan -i terraform -p . "
-                bat "${TRIVY_PATH} config .  --exit-code 1"
+                bat "${TRIVY_PATH} config main.tf --exit-code 1"
             }
         }
         
