@@ -20,8 +20,8 @@ pipeline {
         ARM_USE_AZURE_CLI   = 'false' 
         
         // กำหนด Path ของ Terrascan executable (ต้องแก้ไขให้ตรงกับ Path ของคุณ!)
-        TERRASCAN_PATH      = '"C:\\terrascan_1.19.9_Windows_x86_64\\terrascan.exe"' 
-        
+        //TERRASCAN_PATH      = '"C:\\terrascan_1.19.9_Windows_x86_64\\terrascan.exe"' 
+        TRIVY_PATH = 'C:\\trivy_0.67.2_windows-64bit\\trivy.exe'
         // กำหนด Default Action
         ACTION              = 'apply' 
     }
@@ -47,7 +47,8 @@ pipeline {
                 echo "Starting IaC Security Scan with Terrascan..."
                 // รัน Terrascan: ใช้ตัวแปร PATH ที่กำหนดไว้แล้ว
                 // ใช้ --output cli เพื่อแสดง Policy Violation ใน Console Output
-                bat "${TERRASCAN_PATH} scan -i terraform -p . "
+                //bat "${TERRASCAN_PATH} scan -i terraform -p . "
+                bat "${TRIVY_PATH} config . --severity HIGH --exit-code 1"
             }
         }
         
