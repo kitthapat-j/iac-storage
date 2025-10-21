@@ -44,35 +44,32 @@ pipeline {
         
         stage('Security Scan (SAST)') {
             steps {
-                echo "Starting IaC Security Scan with Terrascan..."
-                // รัน Terrascan: ใช้ตัวแปร PATH ที่กำหนดไว้แล้ว
-                // ใช้ --output cli เพื่อแสดง Policy Violation ใน Console Output
-                //bat "${TERRASCAN_PATH} scan -i terraform -p . "
-                bat "${TRIVY_PATH} config main.tf -f json -o trivy-results.json"
-
-                echo "Checking JSON output for Azure Public Access Violation..."
-                
-                // ใช้ PowerShell เพื่อค้นหาคำที่เกี่ยวข้องกับช่องโหว่
-                // (Policy ID สำหรับ Azure Storage Public Access ใน Trivy มักมีคำว่า 'public')
-              try {
-                    // findstr คืนค่า 0 เมื่อพบข้อความ (SUCCESS) และ 1 เมื่อไม่พบ (FAILURE)
-                    // เราต้องการให้ Pipeline Fail เมื่อพบ (Exit Code 0) ดังนั้นเราต้องกลับ Logic 
+                script { // <<<--- START: ใช้ 'script' Block ห่อหุ้ม Logic Groovy
+                    echo "Starting IaC Security Scan with Trivy (Final Check)..."
                     
-                    // ค้นหาคำที่เกี่ยวข้องกับ Policy Violation ใน Azure Storage
-                    bat "findstr /C:\"azure-storage-account-public-access\" trivy-results.json"
+                    // 1. สั่งให้ Trivy สแกน และ Output เป็น JSON ลงในไฟล์
+                    // (ต้องใช้ bat แทน powershell เพื่อความเสถียร)
+                    bat "C:\\trivy_0.67.2_windows-64bit\\trivy.exe config main.tf -f json -o trivy-results.json"
                     
-                    // ถ้า findstr คืนค่า 0 (พบข้อความ) เราจะมาถึงบรรทัดนี้
-                    echo "--- VULNERABILITY FOUND: Public access is enabled! BLOCKING DEPLOYMENT ---"
-                    error("Security Policy Violation detected: Public Access enabled on Storage Account.")
+                    echo "Checking JSON output for Azure Public Access Violation..."
                     
-                } catch (Exception e) {
-                    // ถ้า findstr คืนค่า 1 (ไม่พบข้อความ) เราจะมาที่นี่
-                    // เราจะให้ Pipeline ผ่านไป
-                    echo "Security scan clean. Proceeding to deployment."
-                }
+                    try {
+                        // 2. ใช้ findstr ค้นหา Policy Violation ในไฟล์ JSON
+                        // (findstr คืนค่า 0 เมื่อพบ = SUCCESS, 1 เมื่อไม่พบ = FAILURE)
+                        bat "findstr /C:\"azure-storage-account-public-access\" trivy-results.json"
+                        
+                        // ถ้า findstr คืนค่า 0 (พบข้อความ) Groovy จะมาถึงบรรทัดนี้
+                        echo "--- VULNERABILITY FOUND: Public access is enabled! BLOCKING DEPLOYMENT ---"
+                        error("Security Policy Violation detected: Public Access enabled on Storage Account.")
+                        
+                    } catch (Exception e) {
+                        // ถ้า findstr คืนค่า 1 (ไม่พบข้อความ) Jenkins จะโยน Exception 
+                        // เราจับ Exception นั้นไว้ และ Pipeline จะผ่านไป
+                        echo "Security scan clean. Proceeding to deployment."
+                    }
+                } // <<<--- END: สิ้นสุด 'script' Block
             }
-        }
-        
+        } 
         stage('terraform plan') {
             steps {
                 // Stage นี้จะถูกข้ามหาก Security Scan Failed
